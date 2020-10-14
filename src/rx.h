@@ -1,5 +1,7 @@
 #pragma once
 
+#include <JsonParserGeneratorRK.h>
+
 struct Receiver
 {
    explicit Receiver(USARTSerial& serial) : serial(serial) {}
@@ -9,8 +11,18 @@ struct Receiver
    }
 
    void transmit(const char* e, const char* d) {
-      serial.printlnf("%s:%s", e, d);
+      p.addString(d);
+      if(p.parse() && Id() && X() && Y()) {
+         serial.printlnf("%s/%s:%s:%s", e, id.c_str(), x.c_str(), y.c_str());
+         p.clear();
+      }
    }
 private:
    USARTSerial& serial;
+   JsonParserStatic<256, 20> p;
+   String id, x, y;
+
+   bool Id() { return p.getOuterValueByKey("id", id); }
+   bool X() { return p.getOuterValueByKey("x", x); }
+   bool Y() { return p.getOuterValueByKey("y", y); }
 };
